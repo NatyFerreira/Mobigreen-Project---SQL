@@ -1,0 +1,43 @@
+./docs/
+**.Identifier
+
+# Variables d'environnement
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter notebooks
+notebooks/.ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
