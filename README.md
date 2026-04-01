@@ -40,22 +40,73 @@ mobigreen-urban-db/
     └── test_example.py                  # Tests exemple (a completer)
 ```
 
-## 3. Installation
+## 3. Pre-requis
+
+- **Python 3.10+** installe sur votre machine
+- **PostgreSQL 15+** operationnel en local (Docker ou installation native)
+- Base `mobigreen_urban` creee et peuplee (resultat du Kit 1)
+
+## 4. Installation
+
+### Etape 1 — Cloner le projet
 
 ```bash
 git clone <url-du-repo>
 cd mobigreen-urban-db
-python -m venv .venv && source .venv/bin/activate   # Linux/macOS
-pip install -e ".[notebooks,dev]"
-cp .env.example .env
-# Editez .env et renseignez DATABASE_URL avec vos identifiants PostgreSQL
 ```
 
-## 4. Pre-requis
+### Etape 2 — Creer et activer l'environnement virtuel
 
-- PostgreSQL 15+ operationnel en local
-- Base `mobigreen_urban` creee et peuplee (resultat du Kit 1)
-- Fichier `.env` configure
+```bash
+# Linux / macOS
+python -m venv .venv
+source .venv/bin/activate
+
+# Windows (PowerShell)
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### Etape 3 — Installer les dependances
+
+**Option A** — via `pyproject.toml` (recommandee) :
+
+```bash
+pip install -e ".[notebooks,dev]"
+```
+
+**Option B** — via `requirements.txt` :
+
+```bash
+pip install -r requirements.txt
+```
+
+### Etape 4 — Configurer les variables d'environnement
+
+```bash
+cp .env.example .env
+```
+
+Ouvrez le fichier `.env` et renseignez vos identifiants PostgreSQL :
+
+```env
+DB_USER=postgres
+DB_PASSWORD=votre_mot_de_passe
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=mobigreen_urban
+```
+
+> **Important :** Le fichier `.env` contient vos identifiants et est ignore par Git (`.gitignore`).
+> Ne commitez **jamais** ce fichier.
+
+### Etape 5 — Verifier l'installation
+
+```bash
+python -c "from dotenv import load_dotenv; print('dotenv OK')"
+python -c "import psycopg2; print('psycopg2 OK')"
+python -c "import sqlalchemy; print('sqlalchemy OK')"
+```
 
 ## 5. Jour 4 — Notebooks
 
