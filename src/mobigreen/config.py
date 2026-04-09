@@ -1,35 +1,21 @@
-"""
-Configuration du package mobigreen.
+from pydantic_settings import BaseSettings
 
-Charge les variables d'environnement depuis le fichier .env
-et expose les parametres de configuration.
-"""
+class Settings(BaseSettings):
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
 
-import os
-from pathlib import Path
-
-from dotenv import load_dotenv
-
-# Charger le fichier .env depuis la racine du projet
-_project_root = Path(__file__).resolve().parent.parent.parent
-load_dotenv(_project_root / ".env")
-
-
-def get_database_url() -> str:
-    """Retourne l'URL de connexion a la base de donnees.
-
-    L'URL est lue depuis la variable d'environnement DATABASE_URL.
-
-    Returns:
-        str: URL de connexion PostgreSQL au format SQLAlchemy.
-
-    Raises:
-        ValueError: Si la variable DATABASE_URL n'est pas definie.
-    """
-    database_url = os.getenv("DATABASE_URL")
-    if database_url is None:
-        raise ValueError(
-            "La variable d'environnement DATABASE_URL n'est pas definie. "
-            "Copiez le fichier .env.example en .env et renseignez vos identifiants."
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
-    return database_url
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
+settings = Settings()

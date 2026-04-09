@@ -1,0 +1,113 @@
+@startuml
+!theme plain
+
+' ===========================
+' ENTITÉS
+' ===========================
+
+entity ZoneMetro {
+    * zone_id : int
+    --
+    code_zone : string
+    nom : string
+}
+
+entity Station {
+    * station_id : int
+    --
+    nom : string
+    altitude : float
+    arrondissement : string
+    zone_id : int <<FK>>
+}
+
+entity Vehicule {
+    * veh_id : int
+    --
+    nom : string
+    statut : string
+    date_debut : datetime
+    date_fin : datetime
+    longueur : float
+}
+
+entity Trajet {
+    * trajet_id : int
+    --
+    veh_id : int <<FK>>
+    station_depart : int <<FK>>
+    station_arrivee : int <<FK>>
+    date_depart : datetime
+    date_arrivee : datetime
+    incident_id : int <<FK>>
+    distance_parcourue : float
+}
+
+entity Usager {
+    * usager_id : int
+    --
+    nom : string
+    prenom : string
+    date_naissance : datetime
+    type_abonnement : string
+}
+
+entity DeplacementMetro {
+    * deplacement_id : int
+    --
+    usager_id : int <<FK>>
+    station_depart : int <<FK>>
+    station_arrivee : int <<FK>>
+    temperature : float
+    humidite : float
+    timestamp : datetime
+}
+
+entity Incident {
+    * incident_id : int
+    --
+    type_incident : string
+    gravite : int
+    date_incident : datetime
+    description : string
+}
+
+entity CapteurAir {
+    * capteur_id : int
+    --
+    nom : string
+    type_capteur : string
+}
+
+entity MesureAir {
+    * mesure_id : int
+    --
+    capteur_id : int <<FK>>
+    station_id : int <<FK>>
+    pression : float
+    temperature : float
+    humidite : float
+    timestamp : datetime
+}
+
+' ===========================
+' RELATIONS
+' ===========================
+
+ZoneMetro ||--o{ Station : contient
+
+Station ||--o{ Vehicule : accueille
+Station ||--o{ Trajet : depart
+Station ||--o{ Trajet : arrivee
+Station ||--o{ MesureAir : mesure
+
+Vehicule ||--o{ Trajet : effectue
+
+Usager ||--o{ DeplacementMetro : realise
+Usager ||--o{ Incident : declare
+
+Incident ||--o{ Trajet : impacte
+
+CapteurAir ||--o{ MesureAir : enregistre
+
+@enduml

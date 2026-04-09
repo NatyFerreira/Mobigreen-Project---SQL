@@ -1,0 +1,97 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class ZoneMetro {
+    + zone_id : int
+    + code_insee : str
+    + nom : str
+}
+
+class Station {
+    + station_id : int
+    + nom : str
+    + latitude : float
+    + longitude : float
+    + capacite : int
+    + places_dispo : int
+    + zone_id : int
+}
+
+class Vehicule {
+    + veh_id : int
+    + type_veh : str
+    + statut : str
+    + niveau_batterie : int?
+    + station_id : int?
+    + latitude : float?
+    + longitude : float?
+}
+
+class Usager {
+    + usr_id : int
+    + nom : str
+    + prenom : str
+    + email : str
+    + type_abonnement : str
+}
+
+class Trajet {
+    + trajet_id : int
+    + usr_id : int
+    + veh_id : int
+    + station_depart : int
+    + station_arrivee : int
+    + date_debut : datetime
+    + date_fin : datetime
+    + duree_min : float
+    + distance_km : float
+    + montant_eur : float
+}
+
+class CapteurAir {
+    + capteur_id : int
+    + station_id : int
+    + type_capteur : str
+}
+
+class Incident {
+    + incident_id : int
+    + description : str
+    + type_incident : str
+    + statut : str
+    + usr_id : int
+}
+
+class DonneeMeteo {
+    + meteo_id : int
+    + station_id : int
+    + temperature : float
+    + humidite : float
+    + vent_kmh : float
+    + timestamp : datetime
+}
+
+class MesureAir {
+    + mesure_id : int
+    + capteur_id : int
+    + pm25 : float
+    + pm10 : float
+    + no2 : float
+    + timestamp : datetime
+}
+
+ZoneMetro "1" -- "0..*" Station : contient >
+Station "1" -- "0..*" Vehicule : héberge >
+Station "1" -- "0..*" DonneeMeteo : météo >
+Station "1" -- "0..*" CapteurAir : capteurs >
+
+CapteurAir "1" -- "0..*" MesureAir : mesures >
+
+Usager "1" -- "0..*" Trajet : effectue >
+Vehicule "1" -- "0..*" Trajet : utilisé dans >
+Station "1" -- "0..*" Trajet : départ >
+Station "1" -- "0..*" Trajet : arrivée >
+
+Usager "1" -- "0..*" Incident : déclare >
+
+@enduml

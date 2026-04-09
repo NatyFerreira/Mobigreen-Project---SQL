@@ -3,6 +3,28 @@
 
 # Variables d'environnement
 .env
+*.env
+*.key
+*.pem
+*.secret
+*.password
+*.pass
+*.token
+*.credentials
+
+# Borg
+borg_repo/
+*.borg
+
+# Docker
+docker-compose.override.yml
+*.override.yml
+*.pid
+*.sock
+
+# Logs
+*.log
+logs/
 
 # Python
 __pycache__/

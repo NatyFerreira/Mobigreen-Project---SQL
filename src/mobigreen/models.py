@@ -1,124 +1,282 @@
-"""
-Modeles ORM SQLAlchemy — MobiGreen Urban.
+# src/mobigreen/models.py
 
-Ce fichier definit les classes Python representant les tables de votre base de donnees.
-Chaque classe correspond a une table et herite de la classe Base.
+from sqlalchemy import (
+    Column, Integer, String, Float, SmallInteger,
+    DateTime, ForeignKey, Text
+)
+from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
+from sqlalchemy.orm import relationship, declarative_base
+from datetime import datetime, timezone
 
-=============================================================================
-GUIDE DE CREATION D'UN MODELE ORM (SQLAlchemy 2.0)
-=============================================================================
-
-1. DECLARATION D'UNE CLASSE MODELE
-----------------------------------
-Chaque table est representee par une classe qui herite de Base.
-Le nom de la table est defini par l'attribut __tablename__.
-
-    class MaTable(Base):
-        __tablename__ = "ma_table"  # Nom exact de la table en base
+Base = declarative_base()
 
 
-2. DECLARATION DES COLONNES
----------------------------
-Utilisez Mapped[type] pour declarer le type Python et mapped_column() pour
-les options de la colonne.
+# ---------------------------------------------------------
+# ZONE METRO
+# ---------------------------------------------------------
+class ZoneMetro(Base):
+    __tablename__ = "zones_metro"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    nom: Mapped[str] = mapped_column(String(100), nullable=False)
-    actif: Mapped[bool] = mapped_column(Boolean, default=True)
+    zone_id = Column(Integer, primary_key=True)
+    nom = Column(String(100), nullable=False)
+    code_insee = Column(String(10), nullable=False, unique=True)
+    created_at = Column(
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
+    )
 
+    # Relations
+    stations = relationship("Station", back_populates="zone")
 
-3. CORRESPONDANCE DES TYPES SQL -> SQLAlchemy
----------------------------------------------
-    SQL                         SQLAlchemy              Python
-    -----------------------------------------------------------------
-    VARCHAR(n), TEXT            String(n), Text         str
-    INTEGER, SERIAL             Integer                 int
-    SMALLINT                    SmallInteger            int
-    BIGINT                      BigInteger              int
-    DOUBLE PRECISION            Float                   float
-    DECIMAL(p,s), NUMERIC(p,s)  Numeric(p,s)            Decimal
-    BOOLEAN                     Boolean                 bool
-    DATE                        Date                    date
-    TIME                        Time                    time
-    TIMESTAMP                   DateTime                datetime
-    TIMESTAMP WITH TIME ZONE    TIMESTAMP(timezone=True) datetime (avec tzinfo)
-
-    Pour TIMESTAMP WITH TIME ZONE, importez depuis le dialect PostgreSQL :
-        from sqlalchemy.dialects.postgresql import TIMESTAMP
-        created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))
+    def __repr__(self):
+        return f"<ZoneMetro(id={self.zone_id}, nom='{self.nom}')>"
 
 
-4. CLE PRIMAIRE AUTO-INCREMENTEE (SERIAL)
------------------------------------------
-    id: Mapped[int] = mapped_column(primary_key=True)
-    # SQLAlchemy gere automatiquement l'auto-increment pour les cles primaires
+# ---------------------------------------------------------
+# STATION
+# ---------------------------------------------------------
+class Station(Base):
+    __tablename__ = "stations"
+
+    station_id = Column(Integer, primary_key=True)
+    nom = Column(String(150), nullable=False)
+    adresse = Column(String(255))
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    capacite = Column(Integer, nullable=False)
+    places_dispo = Column(Integer, nullable=False, default=0)
+    zone_id = Column(
+        Integer,
+        ForeignKey("zones_metro.zone_id", ondelete="SET NULL"),
+        nullable=True
+    )
+    created_at = Column(
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    # Relations
+    zone = relationship("ZoneMetro", back_populates="stations")
+    vehicules = relationship("Vehicule", back_populates="station_actuelle")
+    capteurs = relationship("CapteurAir", back_populates="station")
+
+    def __repr__(self):
+        return f"<Station(id={self.station_id}, nom='{self.nom}')>"
 
 
-5. CLE ETRANGERE ET RELATION
-----------------------------
-Pour une relation Many-to-One (ex: plusieurs locations pour un vehicule) :
+# ---------------------------------------------------------
+# VEHICULE
+# ---------------------------------------------------------
+class Vehicule(Base):
+    __tablename__ = "vehicules"
 
-    # Dans la table "location"
-    vehicule_id: Mapped[int] = mapped_column(ForeignKey("vehicule.id"))
-    vehicule: Mapped["Vehicule"] = relationship(back_populates="locations")
+    veh_id = Column(Integer, primary_key=True)
+    type_veh = Column(String(20), nullable=False) 
+    statut = Column(String(30), nullable=False, default="disponible")
+    niveau_batterie = Column(SmallInteger, nullable=True)  # NULL pour vélos
+    latitude = Column(Float)
+    longitude = Column(Float)
+    station_id = Column(
+        Integer,
+        ForeignKey("stations.station_id", ondelete="SET NULL"),
+        nullable=True
+    )
+    created_at = Column(
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
+    )
 
-    # Dans la table "vehicule"
-    locations: Mapped[list["Location"]] = relationship(back_populates="vehicule")
+    # Relations
+    station_actuelle = relationship("Station", back_populates="vehicules")
 
-Note : utilisez des guillemets autour du nom de classe si elle n'est pas
-encore definie (forward reference).
+    def __repr__(self):
+        return (
+            f"<Vehicule(id={self.veh_id}, type='{self.type_veh}', "
+            f"statut='{self.statut}')>"
+        )
 
+# ---------------------------------------------------------
+# USAGERS
+# ---------------------------------------------------------
+class Usager(Base):
+    __tablename__ = "usagers"
 
-6. METHODE __repr__
--------------------
-Implementez __repr__ pour faciliter le debogage :
+    usr_id = Column(Integer, primary_key=True)
+    nom = Column(String(100), nullable=False)
+    prenom = Column(String(100), nullable=False)
+    email = Column(String(150), nullable=False, unique=True)
+    telephone = Column(String(20))
+    type_abonnement = Column(String(30), nullable=False, default="payant")
+    date_inscription = Column(
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
+    )
 
-    def __repr__(self) -> str:
-        return f"<MaTable(id={self.id}, nom={self.nom!r})>"
+    # Relations
+    trajets = relationship("Trajet", back_populates="usager")
+    incidents = relationship("Incident", back_populates="usager")
 
-
-7. DOCUMENTATION OFFICIELLE
----------------------------
-SQLAlchemy 2.0 ORM Quick Start :
-    https://docs.sqlalchemy.org/en/20/orm/quickstart.html
-
-SQLAlchemy Column and Data Types :
-    https://docs.sqlalchemy.org/en/20/core/type_basics.html
-
-=============================================================================
-"""
-
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, SmallInteger, BigInteger, Float, Numeric
-from sqlalchemy import Boolean, Date, Time, DateTime, Text, ForeignKey
-from sqlalchemy.dialects.postgresql import TIMESTAMP
-
-
-class Base(DeclarativeBase):
-    """Classe de base pour tous les modeles ORM du projet."""
-    pass
+    def __repr__(self):
+        return f"<Usager(id={self.usr_id}, email='{self.email}')>"
 
 
-# =============================================================================
-# TODO: Declarez vos modeles ORM ci-dessous
-# =============================================================================
-#
-# Pour chaque table de votre schema mobigreen_urban :
-# 1. Creez une classe heritant de Base
-# 2. Definissez __tablename__ avec le nom exact de la table
-# 3. Declarez chaque colonne avec Mapped[type] et mapped_column()
-# 4. Ajoutez les cles etrangeres et relations si necessaire
-# 5. Implementez __repr__ pour faciliter le debogage
-#
-# Exemple minimal (a remplacer par vos propres tables) :
-#
-#     class Exemple(Base):
-#         __tablename__ = "exemple"
-#
-#         id: Mapped[int] = mapped_column(primary_key=True)
-#         nom: Mapped[str] = mapped_column(String(100), nullable=False)
-#
-#         def __repr__(self) -> str:
-#             return f"<Exemple(id={self.id}, nom={self.nom!r})>"
-#
-# =============================================================================
+# ---------------------------------------------------------
+# USAGER PSEUDO (RGPD)
+# ---------------------------------------------------------
+class UsagerPseudo(Base):
+    __tablename__ = "usager_pseudo"
+
+    # FK lógica (não relacional) para usagers.usr_id
+    usager_id = Column(Integer, primary_key=True)
+
+    # Identificador pseudonimizado
+    usager_pseudo_id = Column(UUID(as_uuid=True), unique=True, nullable=False)
+
+    def __repr__(self):
+        return (
+            f"<UsagerPseudo(usager_id={self.usager_id}, "
+            f"pseudo='{self.usager_pseudo_id}')>"
+        )
+
+
+# ---------------------------------------------------------
+# TRAJET
+# ---------------------------------------------------------
+class Trajet(Base):
+    __tablename__ = "trajets"
+
+    trj_id = Column(Integer, primary_key=True)
+    date_debut = Column(TIMESTAMP(timezone=True), nullable=False)
+    date_fin = Column(TIMESTAMP(timezone=True))
+    duree_min = Column(Float)
+    distance_km = Column(Float)
+    montant_eur = Column(Float)
+
+    usr_id = Column(Integer, ForeignKey("usagers.usr_id", ondelete="SET NULL"))
+    veh_id = Column(Integer, ForeignKey("vehicules.veh_id", ondelete="SET NULL"))
+    station_depart = Column(Integer, ForeignKey("stations.station_id", ondelete="SET NULL"))
+    station_arrivee = Column(Integer, ForeignKey("stations.station_id", ondelete="SET NULL"))
+
+    # Relations
+    usager = relationship("Usager", back_populates="trajets")
+    vehicule = relationship("Vehicule")
+    station_depart_rel = relationship("Station", foreign_keys=[station_depart])
+    station_arrivee_rel = relationship("Station", foreign_keys=[station_arrivee])
+
+    def __repr__(self):
+        return f"<Trajet(id={self.trj_id}, duree={self.duree_min} min)>"
+
+
+# ---------------------------------------------------------
+# CAPTEUR AIR
+# ---------------------------------------------------------
+class CapteurAir(Base):
+    __tablename__ = "capteurs_air"
+
+    capteur_id = Column(Integer, primary_key=True)
+    type_capteur = Column(String(50))
+    station_id = Column(
+        Integer,
+        ForeignKey("stations.station_id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    station = relationship("Station", back_populates="capteurs")
+
+    def __repr__(self):
+        return f"<CapteurAir(id={self.capteur_id})>"
+
+
+# ---------------------------------------------------------
+# INCIDENT
+# ---------------------------------------------------------
+class Incident(Base):
+    __tablename__ = "incidents"
+
+    inc_id = Column(Integer, primary_key=True)
+    type_incident = Column(String(100))
+    statut = Column(String(50))
+    description = Column(Text)
+    usr_id = Column(Integer, ForeignKey("usagers.usr_id", ondelete="SET NULL"))
+
+    usager = relationship("Usager", back_populates="incidents")
+
+    def __repr__(self):
+        return f"<Incident(id={self.inc_id}, type='{self.type_incident}')>"
+
+# ---------------------------------------------------------
+# DONNEE METEO
+# ---------------------------------------------------------
+class DonneeMeteo(Base):
+    __tablename__ = "donnees_meteo"
+
+    meteo_id = Column(Integer, primary_key=True)
+    station_id = Column(
+        Integer,
+        ForeignKey("stations.station_id", ondelete="SET NULL"),
+        nullable=True
+    )
+    temperature = Column(Float)
+    humidite = Column(Float)
+    vent_kmh = Column(Float)
+    timestamp = Column(
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    station = relationship("Station")
+
+    def __repr__(self):
+        return (
+            f"<DonneeMeteo(id={self.meteo_id}, temp={self.temperature}°C, "
+            f"station={self.station_id})>"
+        )
+
+# ---------------------------------------------------------
+# MESURE AIR
+# ---------------------------------------------------------
+class MesureAir(Base):
+    __tablename__ = "mesures_air"
+
+    mesure_id = Column(Integer, primary_key=True)
+    capteur_id = Column(
+        Integer,
+        ForeignKey("capteurs_air.capteur_id", ondelete="SET NULL"),
+        nullable=True
+    )
+    pm25 = Column(Float)
+    pm10 = Column(Float)
+    no2 = Column(Float)
+    timestamp = Column(
+        TIMESTAMP(timezone=True),
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    capteur = relationship("CapteurAir")
+
+    def __repr__(self):
+        return (
+            f"<MesureAir(id={self.mesure_id}, PM2.5={self.pm25}, "
+            f"capteur={self.capteur_id})>"
+        )
+
+# ---------------------------------------------------------
+# VIEW: TRAJETS ANALYTICS (RGPD)
+# ---------------------------------------------------------
+class TrajetAnalytics(Base):
+    __tablename__ = "trajets_analytics"
+    __table_args__ = {"extend_existing": True}
+
+    trj_id = Column(Integer, primary_key=True)
+    usager_pseudo_id = Column(UUID(as_uuid=True))
+    date_debut = Column(TIMESTAMP(timezone=True))
+    date_fin = Column(TIMESTAMP(timezone=True))
+    duree_min = Column(Float)
+    distance_km = Column(Float)
+    montant_eur = Column(Float)
+    station_depart = Column(Integer)
+    station_arrivee = Column(Integer)
+    veh_id = Column(Integer)
+
+    def __repr__(self):
+        return f"<TrajetAnalytics(id={self.trj_id}, pseudo='{self.usager_pseudo_id}')>"

@@ -160,3 +160,191 @@ pytest --cov=mobigreen --cov-report=term      # couverture de code
 Chaque `raise NotImplementedError` est un exercice a completer.
 La journee est reussie quand tous les `NotImplementedError` sont remplaces
 par du code fonctionnel et couvert par au moins un test.
+nano README.md
+# MobiGreen Urban — Librairie Python
+
+Ce projet fournit une librairie Python permettant d'accéder aux données du système MobiGreen Urban via SQLAlchemy.
+
+## Installation
+
+```bash
+pip install -e .
+
+____________________________________________________
+
+Claro, Natalia — aqui está o **README completo somente em português**, limpo, profissional e pronto para entrega.
+
+---
+
+# 🇧🇷 **README — Português (Brasil)**
+
+# MobiGreen Urban — Sistema de Gestão de Mobilidade Urbana
+
+Projeto desenvolvido no contexto do módulo **C1.6**, com foco em:
+
+- Modelagem de dados  
+- Arquitetura em camadas  
+- SQLAlchemy ORM  
+- Repositórios com métodos métier  
+- Scripts de seed e demonstração  
+- Testes unitários  
+- Empacotamento Python (pyproject.toml)
+
+---
+
+## 📦 Estrutura do Projeto
+
+```
+mobigreen/
+│
+├── src/mobigreen/
+│   ├── models.py
+│   ├── database.py
+│   ├── repositories/
+│   │   ├── base_repository.py
+│   │   ├── usager_repository.py
+│   │   ├── station_repository.py
+│   │   ├── trajet_repository.py
+│   │   ├── vehicule_repository.py
+│   │   ├── incident_repository.py
+│   │   ├── donnee_meteo_repository.py
+│   │   └── mesure_air_repository.py
+│
+├── scripts/
+│   ├── seed.py
+│   └── demo.py
+│
+├── tests/
+│   ├── conftest.py
+│   ├── test_usager_repository.py
+│   ├── test_station_repository.py
+│   └── ...
+│
+├── pyproject.toml
+└── README.md
+```
+
+---
+
+## 🗄️ Banco de Dados
+
+O projeto utiliza **PostgreSQL** com **SQLAlchemy ORM**.
+
+O módulo `database.py` fornece:
+
+- engine configurado  
+- SessionLocal  
+- context manager `get_session()` para uso seguro das sessões  
+
+---
+
+## 🧩 Modelos Implementados
+
+O arquivo `models.py` define as entidades:
+
+- **ZoneMetro**  
+- **Station**  
+- **Vehicule**  
+- **Usager**  
+- **Trajet**  
+- **CapteurAir**  
+- **Incident**  
+- **DonneeMeteo**  
+- **MesureAir**
+
+Todos os modelos possuem:
+
+- chaves primárias  
+- chaves estrangeiras  
+- relacionamentos ORM  
+- timestamps coerentes  
+- integridade referencial  
+
+---
+
+## 🧠 Repositórios
+
+Cada entidade possui um repositório dedicado, herdando de `BaseRepository`.
+
+Exemplos de métodos métier:
+
+- `UsagerRepository.get_by_email()`  
+- `StationRepository.get_by_zone()`  
+- `TrajetRepository.get_by_user()`  
+- `VehiculeRepository.get_by_type()`  
+- `IncidentRepository.get_open_incidents()`  
+
+Os repositórios encapsulam a lógica de acesso ao banco, mantendo o código organizado e modular.
+
+---
+
+## 🌱 Seed — População Inicial
+
+O script `scripts/seed.py` cria dados realistas para:
+
+- zonas metropolitanas  
+- estações  
+- usuários  
+- veículos (velos e trottinettes)  
+- trajetos  
+- sensores de ar  
+- incidentes  
+- dados meteorológicos  
+- medidas de qualidade do ar  
+
+### Executar o seed:
+
+```bash
+python scripts/seed.py
+```
+
+---
+
+## ▶️ Demo — Demonstração das Funcionalidades
+
+O script `scripts/demo.py` demonstra o uso dos repositórios:
+
+- listagem e filtros de usuários  
+- estações disponíveis  
+- estações por zona  
+- trajetos por usuário  
+- incidentes abertos  
+- veículos por tipo  
+- dados meteorológicos  
+- medidas de qualidade do ar  
+
+### Executar o demo:
+
+```bash
+python scripts/demo.py
+```
+
+---
+
+## 🧪 Testes
+
+Os testes utilizam SQLite in-memory e fixtures do pytest.
+
+### Executar:
+
+```bash
+pytest -q
+```
+
+---
+
+## 📥 Instalação do Package
+
+Na raiz do projeto:
+
+```bash
+pip install -e .
+```
+
+Testar:
+
+```bash
+python -c "import mobigreen; print(mobigreen)"
+```
+
+---
