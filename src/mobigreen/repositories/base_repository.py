@@ -1,3 +1,8 @@
+from typing import Generic, TypeVar, Type
+from sqlalchemy.orm import Session
+
+T = TypeVar("T")
+
 class BaseRepository(Generic[T]):
     def __init__(self, session: Session, model: Type[T]):
         self.session = session
@@ -11,7 +16,10 @@ class BaseRepository(Generic[T]):
 
     def create(self, obj: T) -> T:
         self.session.add(obj)
+        self.session.commit()
+        self.session.refresh(obj)
         return obj
 
     def delete(self, obj: T) -> None:
         self.session.delete(obj)
+        self.session.commit()
