@@ -193,27 +193,3 @@ def seed():
                 session.add(ma)
 
         session.commit()
-
-def demo_donnees_meteo():
-    print("\n=== DEMO : Données Météo ===")
-
-    with get_session() as session:
-        repo = DonneeMeteoRepository(session)
-
-        print("\n📌 Dernières données météo :")
-        for m in repo.get_all()[:5]:
-            print("  →", m)
-
-
-def demo_mesures_air():
-    print("\n=== DEMO : Mesures de Qualité de l'Air ===")
-
-    with get_session() as session:
-        repo = MesureAirRepository(session)
-
-        print("\n📌 Dernières mesures d'air :")
-        for m in repo.get_all()[:5]:
-            print("  →", m)
-
-demo_donnees_meteo()
-demo_mesures_air()
